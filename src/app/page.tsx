@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 
 // --- Version & Copyright ---
-const version = "1.0.2";
+const version = "1.0.3";
 const year = new Date().getFullYear();
 
 type State = {
@@ -52,17 +52,30 @@ export default function Home() {
     let newPopulation = oldPopulation;
     const flashes: { capacity?: boolean; population?: boolean } = {};
 
-    if (field === "capacity") newCapacity += amount;
-    if (field === "population") newPopulation += amount;
+    if (field === "capacity") {
+      newCapacity += amount;
 
-    // Prevent negatives
-    if (newCapacity < 0) {
-      newCapacity = 0;
-      flashes.capacity = true;
+      // Prevent negatives
+      if (newCapacity < 0) {
+        newCapacity = 0;
+        flashes.capacity = true;
+      }
+
+      // Prevent exceeding 50M
+      if (newCapacity > 50_000_000) {
+        newCapacity = 50_000_000;
+        flashes.capacity = true;
+      }
     }
-    if (newPopulation < 0) {
-      newPopulation = 0;
-      flashes.population = true;
+
+    if (field === "population") {
+      newPopulation += amount;
+
+      // Prevent negatives
+      if (newPopulation < 0) {
+        newPopulation = 0;
+        flashes.population = true;
+      }
     }
 
     // Cap population if it exceeds capacity
