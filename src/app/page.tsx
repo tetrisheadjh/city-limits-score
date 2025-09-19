@@ -1,5 +1,10 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
+
+// --- Version & Copyright ---
+const version = "1.0.0";
+const year = new Date().getFullYear();
 
 type State = {
   capacity: number;
@@ -13,6 +18,22 @@ export default function Home() {
     capacity: false,
     population: false,
   });
+
+  const searchParams = useSearchParams();
+  const debugMode = searchParams.get("debug") === "1";
+
+  // Load from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem("city-limits-state");
+    if (saved) {
+      setState(JSON.parse(saved));
+    }
+  }, []);
+
+  // Save to localStorage on change
+  useEffect(() => {
+    localStorage.setItem("city-limits-state", JSON.stringify(state));
+  }, [state]);
 
   const triggerFlash = (targets: { capacity?: boolean; population?: boolean }) => {
     setFlash({
@@ -48,10 +69,10 @@ export default function Home() {
       flashes.population = true;
     }
 
-    // Enforce rules
+    // Cap population if it exceeds capacity
     if (newPopulation > newCapacity) {
       newPopulation = newCapacity;
-      flashes.capacity = true; // show capacity limited it
+      flashes.capacity = true;
     }
 
     // Key case: capacity shrank AND forced population down
@@ -67,7 +88,12 @@ export default function Home() {
     updateState({ capacity: newCapacity, population: newPopulation });
   };
 
-  const reset = () => updateState({ capacity: 0, population: 0 });
+  const reset = () => {
+    if (window.confirm("Are you sure you want to reset both values to zero?")) {
+      updateState({ capacity: 0, population: 0 });
+    }
+  };
+
   const undo = () => {
     if (history.length > 0) {
       const last = history[history.length - 1];
@@ -77,10 +103,20 @@ export default function Home() {
   };
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white p-8">
-      <h1 className="text-4xl font-extrabold mb-8 tracking-wide">🏙️ City Tracker</h1>
+    <main className="flex min-h-screen flex-col items-center justify-between bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white p-8">
+      {/* Header */}
+      <div className="text-center">
+        <h1 className="text-4xl sm:text-5xl font-extrabold tracking-wide">
+          🏙️ CITY LIMITS
+        </h1>
+        <p className="text-lg sm:text-xl text-gray-300 mt-2">
+          Population and Capacity Tracker
+        </p>
+        <div className="mx-auto mt-3 h-1 w-24 bg-gray-600 rounded"></div>
+      </div>
 
-      <div className="mb-8 text-center space-y-2">
+      {/* Current values */}
+      <div className="text-center space-y-2">
         <p
           className={`text-2xl font-semibold transition-colors duration-300 ${
             flash.capacity ? "text-red-500" : "text-green-400"
@@ -97,75 +133,80 @@ export default function Home() {
         </p>
       </div>
 
-      {/* Capacity controls */}
-      <div className="w-full max-w-md mb-8 space-y-3">
-        <div className="grid grid-cols-2 gap-4">
-          <button
-            onClick={() => adjust("capacity", -100000)}
-            className="px-4 py-2 rounded-lg font-semibold shadow-md bg-blue-300 hover:bg-blue-400 transition"
-          >
-            -100k Capacity
-          </button>
-          <button
-            onClick={() => adjust("capacity", 100000)}
-            className="px-4 py-2 rounded-lg font-semibold shadow-md bg-blue-300 hover:bg-blue-400 transition"
-          >
-            +100k Capacity
-          </button>
+      {/* Controls wrapper */}
+      <div className="w-full max-w-md space-y-8 mt-8">
+        {/* Capacity controls */}
+        <div className="space-y-3">
+          <h2 className="text-center text-gray-300 font-medium">Capacity Controls</h2>
+          <div className="grid grid-cols-2 gap-4">
+            <button
+              onClick={() => adjust("capacity", -1000000)}
+              className="px-4 py-3 rounded-lg font-semibold shadow-md bg-blue-500 hover:bg-blue-600 transition"
+            >
+              <span className="text-white font-bold text-2xl">-</span> 1M Capacity
+            </button>
+            <button
+              onClick={() => adjust("capacity", 1000000)}
+              className="px-4 py-3 rounded-lg font-semibold shadow-md bg-blue-500 hover:bg-blue-600 transition"
+            >
+              <span className="text-white font-bold text-2xl">+</span> 1M Capacity
+            </button>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <button
+              onClick={() => adjust("capacity", -100000)}
+              className="px-4 py-3 rounded-lg font-semibold shadow-md bg-blue-300 hover:bg-blue-400 transition"
+            >
+              <span className="text-white font-bold text-2xl">-</span> 100k Capacity
+            </button>
+            <button
+              onClick={() => adjust("capacity", 100000)}
+              className="px-4 py-3 rounded-lg font-semibold shadow-md bg-blue-300 hover:bg-blue-400 transition"
+            >
+              <span className="text-white font-bold text-2xl">+</span> 100k Capacity
+            </button>
+          </div>
         </div>
-        <div className="grid grid-cols-2 gap-4">
-          <button
-            onClick={() => adjust("capacity", -1000000)}
-            className="px-4 py-2 rounded-lg font-semibold shadow-md bg-blue-500 hover:bg-blue-600 transition"
-          >
-            -1M Capacity
-          </button>
-          <button
-            onClick={() => adjust("capacity", 1000000)}
-            className="px-4 py-2 rounded-lg font-semibold shadow-md bg-blue-500 hover:bg-blue-600 transition"
-          >
-            +1M Capacity
-          </button>
-        </div>
-      </div>
 
-      {/* Divider */}
-      <div className="w-full max-w-md border-t border-gray-600 my-6"></div>
+        {/* Divider */}
+        <div className="mx-auto h-px w-full bg-gray-600"></div>
 
-      {/* Population controls */}
-      <div className="w-full max-w-md mb-8 space-y-3">
-        <div className="grid grid-cols-2 gap-4">
-          <button
-            onClick={() => adjust("population", -100000)}
-            className="px-4 py-2 rounded-lg font-semibold shadow-md bg-lime-200 hover:bg-lime-300 transition text-black"
-          >
-            -100k Population
-          </button>
-          <button
-            onClick={() => adjust("population", 100000)}
-            className="px-4 py-2 rounded-lg font-semibold shadow-md bg-lime-200 hover:bg-lime-300 transition text-black"
-          >
-            +100k Population
-          </button>
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <button
-            onClick={() => adjust("population", -1000000)}
-            className="px-4 py-2 rounded-lg font-semibold shadow-md bg-lime-500 hover:bg-lime-600 transition text-black"
-          >
-            -1M Population
-          </button>
-          <button
-            onClick={() => adjust("population", 1000000)}
-            className="px-4 py-2 rounded-lg font-semibold shadow-md bg-lime-500 hover:bg-lime-600 transition text-black"
-          >
-            +1M Population
-          </button>
+        {/* Population controls */}
+        <div className="space-y-3">
+          <h2 className="text-center text-gray-300 font-medium">Population Controls</h2>
+          <div className="grid grid-cols-2 gap-4">
+            <button
+              onClick={() => adjust("population", -1000000)}
+              className="px-4 py-3 rounded-lg font-semibold shadow-md bg-lime-500 hover:bg-lime-600 transition text-black"
+            >
+              <span className="text-black font-bold text-2xl">-</span> 1M Population
+            </button>
+            <button
+              onClick={() => adjust("population", 1000000)}
+              className="px-4 py-3 rounded-lg font-semibold shadow-md bg-lime-500 hover:bg-lime-600 transition text-black"
+            >
+              <span className="text-black font-bold text-2xl">+</span> 1M Population
+            </button>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <button
+              onClick={() => adjust("population", -100000)}
+              className="px-4 py-3 rounded-lg font-semibold shadow-md bg-lime-200 hover:bg-lime-300 transition text-black"
+            >
+              <span className="text-black font-bold text-2xl">-</span> 100k Population
+            </button>
+            <button
+              onClick={() => adjust("population", 100000)}
+              className="px-4 py-3 rounded-lg font-semibold shadow-md bg-lime-200 hover:bg-lime-300 transition text-black"
+            >
+              <span className="text-black font-bold text-2xl">+</span> 100k Population
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Undo & Reset */}
-      <div className="flex gap-4">
+      <div className="flex gap-4 mt-8">
         <button
           onClick={undo}
           disabled={history.length === 0}
@@ -181,7 +222,19 @@ export default function Home() {
         </button>
       </div>
 
-      <p className="mt-6 text-sm text-gray-400">Undo steps left: {history.length}</p>
+      {/* Debug info */}
+      {debugMode && (
+        <p className="mt-6 text-sm text-gray-400">
+          Undo steps left: {history.length}
+        </p>
+      )}
+
+      {/* Footer */}
+      <footer className="mt-12 text-center text-gray-500 text-sm">
+        © {year} James Hunt — Version {version}
+        <br />
+        <span className="text-gray-600">Replace favicon for full branding polish.</span>
+      </footer>
     </main>
   );
 }
