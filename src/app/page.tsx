@@ -1,6 +1,5 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
 
 // --- Version & Copyright ---
 const version = "1.0.0";
@@ -18,19 +17,22 @@ export default function Home() {
     capacity: false,
     population: false,
   });
+  const [debugMode, setDebugMode] = useState(false);
 
-  const searchParams = useSearchParams();
-  const debugMode = searchParams.get("debug") === "1";
-
-  // Load from localStorage on mount
+  // Load state from localStorage on mount
   useEffect(() => {
     const saved = localStorage.getItem("city-limits-state");
     if (saved) {
       setState(JSON.parse(saved));
     }
+    // Debug mode from query param
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      setDebugMode(params.get("debug") === "1");
+    }
   }, []);
 
-  // Save to localStorage on change
+  // Save state to localStorage
   useEffect(() => {
     localStorage.setItem("city-limits-state", JSON.stringify(state));
   }, [state]);
@@ -143,13 +145,13 @@ export default function Home() {
               onClick={() => adjust("capacity", -1000000)}
               className="px-4 py-3 rounded-lg font-semibold shadow-md bg-blue-500 hover:bg-blue-600 transition"
             >
-              <span className="text-white font-bold text-2xl">-</span> 1M Capacity
+              <span className="text-white font-bold text-2xl mr-1">-</span> 1M Capacity
             </button>
             <button
               onClick={() => adjust("capacity", 1000000)}
               className="px-4 py-3 rounded-lg font-semibold shadow-md bg-blue-500 hover:bg-blue-600 transition"
             >
-              <span className="text-white font-bold text-2xl">+</span> 1M Capacity
+              <span className="text-white font-bold text-2xl mr-1">+</span> 1M Capacity
             </button>
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -157,13 +159,13 @@ export default function Home() {
               onClick={() => adjust("capacity", -100000)}
               className="px-4 py-3 rounded-lg font-semibold shadow-md bg-blue-300 hover:bg-blue-400 transition"
             >
-              <span className="text-white font-bold text-2xl">-</span> 100k Capacity
+              <span className="text-white font-bold text-2xl mr-1">-</span> 100k Capacity
             </button>
             <button
               onClick={() => adjust("capacity", 100000)}
               className="px-4 py-3 rounded-lg font-semibold shadow-md bg-blue-300 hover:bg-blue-400 transition"
             >
-              <span className="text-white font-bold text-2xl">+</span> 100k Capacity
+              <span className="text-white font-bold text-2xl mr-1">+</span> 100k Capacity
             </button>
           </div>
         </div>
@@ -179,13 +181,13 @@ export default function Home() {
               onClick={() => adjust("population", -1000000)}
               className="px-4 py-3 rounded-lg font-semibold shadow-md bg-lime-500 hover:bg-lime-600 transition text-black"
             >
-              <span className="text-black font-bold text-2xl">-</span> 1M Population
+              <span className="text-black font-bold text-2xl mr-1">-</span> 1M Population
             </button>
             <button
               onClick={() => adjust("population", 1000000)}
               className="px-4 py-3 rounded-lg font-semibold shadow-md bg-lime-500 hover:bg-lime-600 transition text-black"
             >
-              <span className="text-black font-bold text-2xl">+</span> 1M Population
+              <span className="text-black font-bold text-2xl mr-1">+</span> 1M Population
             </button>
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -193,13 +195,13 @@ export default function Home() {
               onClick={() => adjust("population", -100000)}
               className="px-4 py-3 rounded-lg font-semibold shadow-md bg-lime-200 hover:bg-lime-300 transition text-black"
             >
-              <span className="text-black font-bold text-2xl">-</span> 100k Population
+              <span className="text-black font-bold text-2xl mr-1">-</span> 100k Population
             </button>
             <button
               onClick={() => adjust("population", 100000)}
               className="px-4 py-3 rounded-lg font-semibold shadow-md bg-lime-200 hover:bg-lime-300 transition text-black"
             >
-              <span className="text-black font-bold text-2xl">+</span> 100k Population
+              <span className="text-black font-bold text-2xl mr-1">+</span> 100k Population
             </button>
           </div>
         </div>
@@ -232,8 +234,6 @@ export default function Home() {
       {/* Footer */}
       <footer className="mt-12 text-center text-gray-500 text-sm">
         © {year} James Hunt — Version {version}
-        <br />
-        <span className="text-gray-600">Replace favicon for full branding polish.</span>
       </footer>
     </main>
   );
