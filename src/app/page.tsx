@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 
 // --- Version & Copyright ---
-const version = "1.0.1";
+const version = "1.0.2";
 const year = new Date().getFullYear();
 
 type State = {
@@ -22,9 +22,7 @@ export default function Home() {
   // Load state + debug flag on mount
   useEffect(() => {
     const saved = localStorage.getItem("city-limits-state");
-    if (saved) {
-      setState(JSON.parse(saved));
-    }
+    if (saved) setState(JSON.parse(saved));
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       setDebugMode(params.get("debug") === "1");
@@ -37,10 +35,7 @@ export default function Home() {
   }, [state]);
 
   const triggerFlash = (targets: { capacity?: boolean; population?: boolean }) => {
-    setFlash({
-      capacity: !!targets.capacity,
-      population: !!targets.population,
-    });
+    setFlash({ capacity: !!targets.capacity, population: !!targets.population });
     setTimeout(() => setFlash({ capacity: false, population: false }), 500);
   };
 
@@ -76,15 +71,13 @@ export default function Home() {
       flashes.capacity = true;
     }
 
-    // Key case: capacity shrank AND forced population down
+    // Capacity shrank AND forced population down
     if (newCapacity < oldCapacity && newPopulation < oldPopulation) {
       flashes.capacity = true;
       flashes.population = true;
     }
 
-    if (flashes.capacity || flashes.population) {
-      triggerFlash(flashes);
-    }
+    if (flashes.capacity || flashes.population) triggerFlash(flashes);
 
     updateState({ capacity: newCapacity, population: newPopulation });
   };
@@ -103,8 +96,13 @@ export default function Home() {
     }
   };
 
+  // Reusable base classes so all buttons match size & layout
+  const btnBase =
+    "h-14 sm:h-12 w-full rounded-xl font-semibold shadow-md transition " +
+    "flex items-center justify-center gap-2 whitespace-nowrap text-sm sm:text-base";
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white p-8">
+    <main className="flex min-h-screen flex-col items-center justify-between bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white p-6 sm:p-8">
       {/* Header */}
       <div className="text-center">
         <h1 className="text-4xl sm:text-5xl font-extrabold tracking-wide">
@@ -113,20 +111,20 @@ export default function Home() {
         <p className="text-lg sm:text-xl text-gray-300 mt-2">
           Population and Capacity Tracker
         </p>
-        <div className="mx-auto mt-3 h-1 w-24 bg-gray-600 rounded"></div>
+        <div className="mx-auto mt-3 h-1 w-24 bg-gray-600 rounded" />
       </div>
 
       {/* Current values */}
-      <div className="text-center space-y-2">
+      <div className="text-center space-y-2 mt-6">
         <p
-          className={`text-2xl font-semibold transition-colors duration-300 ${
+          className={`text-3xl sm:text-3xl font-extrabold transition-colors duration-300 ${
             flash.capacity ? "text-red-500" : "text-green-400"
           }`}
         >
           Capacity: {state.capacity.toLocaleString()}
         </p>
         <p
-          className={`text-2xl font-semibold transition-colors duration-300 ${
+          className={`text-3xl sm:text-3xl font-extrabold transition-colors duration-300 ${
             flash.population ? "text-red-500" : "text-blue-400"
           }`}
         >
@@ -137,87 +135,99 @@ export default function Home() {
       {/* Controls wrapper */}
       <div className="w-full max-w-md space-y-8 mt-8">
         {/* Capacity controls */}
-        <div className="space-y-3">
+        <div className="space-y-4">
           <h2 className="text-center text-gray-300 font-medium">Capacity Controls</h2>
-          <div className="grid grid-cols-2 gap-4">
+
+          <div className="grid grid-cols-2 gap-3">
             <button
               onClick={() => adjust("capacity", -1000000)}
-              className="px-4 py-3 rounded-lg font-semibold shadow-md bg-blue-500 hover:bg-blue-600 transition"
+              className={`${btnBase} bg-blue-500 hover:bg-blue-600`}
             >
-              <span className="text-white font-bold text-2xl mr-1">-</span> 1M Capacity
+              <span className="text-white font-extrabold text-2xl">-</span>
+              1M Capacity
             </button>
             <button
               onClick={() => adjust("capacity", 1000000)}
-              className="px-4 py-3 rounded-lg font-semibold shadow-md bg-blue-500 hover:bg-blue-600 transition"
+              className={`${btnBase} bg-blue-500 hover:bg-blue-600`}
             >
-              <span className="text-white font-bold text-2xl mr-1">+</span> 1M Capacity
+              <span className="text-white font-extrabold text-2xl">+</span>
+              1M Capacity
             </button>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+
+          <div className="grid grid-cols-2 gap-3">
             <button
               onClick={() => adjust("capacity", -100000)}
-              className="px-4 py-3 rounded-lg font-semibold shadow-md bg-blue-300 hover:bg-blue-400 transition"
+              className={`${btnBase} bg-blue-300 hover:bg-blue-400`}
             >
-              <span className="text-white font-bold text-2xl mr-1">-</span> 100k Capacity
+              <span className="text-white font-extrabold text-2xl">-</span>
+              100k Capacity
             </button>
             <button
               onClick={() => adjust("capacity", 100000)}
-              className="px-4 py-3 rounded-lg font-semibold shadow-md bg-blue-300 hover:bg-blue-400 transition"
+              className={`${btnBase} bg-blue-300 hover:bg-blue-400`}
             >
-              <span className="text-white font-bold text-2xl mr-1">+</span> 100k Capacity
+              <span className="text-white font-extrabold text-2xl">+</span>
+              100k Capacity
             </button>
           </div>
         </div>
 
         {/* Divider */}
-        <div className="mx-auto h-px w-full bg-gray-600"></div>
+        <div className="mx-auto h-px w-full bg-gray-600" />
 
         {/* Population controls */}
-        <div className="space-y-3">
+        <div className="space-y-4">
           <h2 className="text-center text-gray-300 font-medium">Population Controls</h2>
-          <div className="grid grid-cols-2 gap-4">
+
+          <div className="grid grid-cols-2 gap-3">
             <button
               onClick={() => adjust("population", -1000000)}
-              className="px-4 py-3 rounded-lg font-semibold shadow-md bg-lime-500 hover:bg-lime-600 transition text-black"
+              className={`${btnBase} bg-lime-500 hover:bg-lime-600 text-black`}
             >
-              <span className="text-black font-bold text-2xl mr-1">-</span> 1M Population
+              <span className="text-black font-extrabold text-2xl">-</span>
+              1M Population
             </button>
             <button
               onClick={() => adjust("population", 1000000)}
-              className="px-4 py-3 rounded-lg font-semibold shadow-md bg-lime-500 hover:bg-lime-600 transition text-black"
+              className={`${btnBase} bg-lime-500 hover:bg-lime-600 text-black`}
             >
-              <span className="text-black font-bold text-2xl mr-1">+</span> 1M Population
+              <span className="text-black font-extrabold text-2xl">+</span>
+              1M Population
             </button>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+
+          <div className="grid grid-cols-2 gap-3">
             <button
               onClick={() => adjust("population", -100000)}
-              className="px-4 py-3 rounded-lg font-semibold shadow-md bg-lime-200 hover:bg-lime-300 transition text-black"
+              className={`${btnBase} bg-lime-200 hover:bg-lime-300 text-black`}
             >
-              <span className="text-black font-bold text-2xl mr-1">-</span> 100k Population
+              <span className="text-black font-extrabold text-2xl">-</span>
+              100k Population
             </button>
             <button
               onClick={() => adjust("population", 100000)}
-              className="px-4 py-3 rounded-lg font-semibold shadow-md bg-lime-200 hover:bg-lime-300 transition text-black"
+              className={`${btnBase} bg-lime-200 hover:bg-lime-300 text-black`}
             >
-              <span className="text-black font-bold text-2xl mr-1">+</span> 100k Population
+              <span className="text-black font-extrabold text-2xl">+</span>
+              100k Population
             </button>
           </div>
         </div>
       </div>
 
       {/* Undo & Reset */}
-      <div className="flex gap-4 mt-8">
+      <div className="flex gap-4 mt-8 w-full max-w-xs">
         <button
           onClick={undo}
           disabled={history.length === 0}
-          className="px-4 py-2 rounded-lg font-semibold shadow-md transition bg-yellow-500 hover:bg-yellow-600 disabled:bg-gray-600"
+          className="h-12 flex-1 rounded-xl font-semibold shadow-md transition bg-yellow-500 hover:bg-yellow-600 disabled:bg-gray-600"
         >
           Undo
         </button>
         <button
           onClick={reset}
-          className="px-4 py-2 rounded-lg font-semibold shadow-md transition bg-red-500 hover:bg-red-600"
+          className="h-12 flex-1 rounded-xl font-semibold shadow-md transition bg-red-500 hover:bg-red-600"
         >
           Reset
         </button>
@@ -225,9 +235,7 @@ export default function Home() {
 
       {/* Debug info */}
       {debugMode && (
-        <p className="mt-6 text-sm text-gray-400">
-          Undo steps left: {history.length}
-        </p>
+        <p className="mt-6 text-sm text-gray-400">Undo steps left: {history.length}</p>
       )}
 
       {/* Footer */}
