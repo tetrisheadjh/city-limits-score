@@ -19,13 +19,12 @@ export default function Home() {
   });
   const [debugMode, setDebugMode] = useState(false);
 
-  // Load state from localStorage on mount
+  // Load state + debug flag on mount
   useEffect(() => {
     const saved = localStorage.getItem("city-limits-state");
     if (saved) {
       setState(JSON.parse(saved));
     }
-    // Debug mode from query param
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       setDebugMode(params.get("debug") === "1");
