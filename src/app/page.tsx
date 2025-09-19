@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 
 // --- Version & Copyright ---
-const version = "1.0.0";
+const version = "1.0.1";
 const year = new Date().getFullYear();
 
 type State = {
